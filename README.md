@@ -41,7 +41,7 @@ First ensure opencv is installed (contrib needed for testing). A detailed instal
 
 ```bash
 // clone repo
-$ git clone https://github.com/Cartermel/imagealign.git --depth=1
+$ git clone https://github.com/Cartermel/imagealign.git --depth 1
 
 $ cd imagealign
 
