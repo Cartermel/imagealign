@@ -16,6 +16,7 @@ func main() {
 	var maskPath *string
 
 	app := &cli.App{
+		// TODO: enable this... https://cli.urfave.org/v2/examples/bash-completions/
 		EnableBashCompletion: true,
 		Name:                 "imagealign",
 		Usage:                "Aligns the passed input image with given reference.",
