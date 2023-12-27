@@ -2,9 +2,13 @@ module github.com/Cartermel/imagealign
 
 go 1.21.0
 
-require gocv.io/x/gocv v0.35.0
+require (
+	github.com/urfave/cli/v2 v2.27.0
+	gocv.io/x/gocv v0.35.0
+)
 
 require (
-	github.com/jessevdk/go-flags v1.5.0 // indirect
-	golang.org/x/sys v0.0.0-20210320140829-1e4c9ba3b0c4 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 )

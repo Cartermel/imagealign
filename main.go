@@ -6,44 +6,85 @@ import (
 	"os"
 	"sort"
 
-	"github.com/jessevdk/go-flags"
+	"github.com/urfave/cli/v2"
 	"gocv.io/x/gocv"
 )
 
-var args struct {
-	Percent       float64 `short:"p" description:"Percentage of 'good matches' to use from opencv feature detection, represented by a float64 value ranging from 0-1" default:"0.7"`
-	InputPath     string  `short:"i" long:"input" description:"Input image path." required:"true"`
-	ReferencePath string  `short:"r" long:"reference" description:"Reference image path." required:"true"`
-	InputMask     *string `short:"m" long:"mask" description:"Mask for feature detection on the input image"`
-	OutputPath    string  `short:"o" long:"output" description:"Output path of aligned image." required:"true"`
-}
-
 func main() {
-	_, err := flags.Parse(&args)
+	var inputPath, referencePath, outputPath string
+	var percent float64
+	var maskPath *string
 
-	if err != nil {
-		os.Exit(1)
+	app := &cli.App{
+		EnableBashCompletion: true,
+		Name:                 "imagealign",
+		Usage:                "Aligns the passed input image with given reference.",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "input",
+				Aliases:     []string{"i"},
+				Required:    true,
+				Usage:       "Input image path",
+				Destination: &inputPath,
+			},
+			&cli.StringFlag{
+				Name:        "reference",
+				Aliases:     []string{"r"},
+				Required:    true,
+				Usage:       "Reference image path",
+				Destination: &referencePath,
+			},
+			&cli.StringFlag{
+				Name:        "output",
+				Aliases:     []string{"o"},
+				Required:    true,
+				Usage:       "Output image path",
+				Destination: &outputPath,
+			},
+			&cli.Float64Flag{
+				Name:        "percent",
+				Aliases:     []string{"p"},
+				Usage:       "Percentage of 'good matches' to use from opencv feature detection, represented by a float64 value ranging from 0-1",
+				Destination: &percent,
+				Value:       0.7,
+			},
+			&cli.StringFlag{
+				Name:        "mask",
+				Aliases:     []string{"m"},
+				Usage:       "Input image mask path",
+				Destination: maskPath,
+			},
+		},
+		Action: func(*cli.Context) error {
+			input := readMatFromPath(inputPath)
+			reference := readMatFromPath(referencePath)
+
+			var inputMask gocv.Mat
+			if maskPath != nil {
+				inputMask = readMatFromPath(*maskPath)
+			} else {
+				inputMask = gocv.NewMat()
+			}
+
+			defer input.Close()
+			defer reference.Close()
+			defer inputMask.Close()
+
+			fmt.Println(percent)
+
+			align(reference, &input, inputMask, percent)
+			writeSuccess := gocv.IMWrite(outputPath, input)
+
+			if !writeSuccess {
+				return fmt.Errorf("Failed to write output image to '%s'", outputPath)
+			}
+
+			return nil
+		},
 	}
 
-	input := readMatFromPath(args.InputPath)
-	reference := readMatFromPath(args.ReferencePath)
-
-	var inputMask gocv.Mat
-	if args.InputMask != nil {
-		inputMask = readMatFromPath(*args.InputMask)
-	} else {
-		inputMask = gocv.NewMat()
-	}
-
-	defer input.Close()
-	defer reference.Close()
-	defer inputMask.Close()
-
-	align(reference, &input, inputMask, args.Percent)
-	writeSuccess := gocv.IMWrite(args.OutputPath, input)
-
-	if !writeSuccess {
-		fmt.Printf("Failed to write output image to '%s'", args.OutputPath)
+	if err := app.Run(os.Args); err != nil {
+		fmt.Printf("ERROR: %v", err)
 		os.Exit(1)
 	}
 }
