@@ -47,3 +47,27 @@ $ cd imagealign
 
 $ go install
 ```
+
+## Examples
+
+(reference images located in the ./img directory)
+
+<table>
+<thead>
+    <tr>
+        <td>Input</td>
+        <td>Output</td>
+    </tr>
+</thead>
+
+<tbody>
+    <tr>
+        <td><img src="./img/lenna_skewed.jpg" width=400px></td>
+        <td><img src="./img/examples/lenna_skewed_output_0.7.jpg" width=400px></td>
+    </tr>
+    <tr>
+        <td><img src="./img/ca-t2-input.jpg" width=400px></td>
+        <td><img src="./img/examples/ca-t2-output-0.7.jpg" width=400px></td>
+    </tr>
+</tbody>
+</table>
