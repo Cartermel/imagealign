@@ -75,6 +75,7 @@ func main() {
 			align(reference, &input, inputMask, percent)
 			writeSuccess := gocv.IMWrite(outputPath, input)
 
+			// TODO: handle file extensions, gocv doesnt catch cvexceptions so this panics currently
 			if !writeSuccess {
 				return fmt.Errorf("Failed to write output image to '%s'", outputPath)
 			}
