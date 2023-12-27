@@ -11,10 +11,10 @@ import (
 )
 
 var args struct {
-	Percent       float64 `short:"p" description:"Percentage of 'good matches' to use from opencv feature detection, represented by a float64 value ranging from 0-1" default:"1"`
+	Percent       float64 `short:"p" description:"Percentage of 'good matches' to use from opencv feature detection, represented by a float64 value ranging from 0-1" default:"0.7"`
 	InputPath     string  `short:"i" long:"input" description:"Input image path." required:"true"`
 	ReferencePath string  `short:"r" long:"reference" description:"Reference image path." required:"true"`
-	MaskPath      *string `short:"m" long:"mask" description:"Mask for feature detection / homography matrix"`
+	InputMask     *string `short:"m" long:"mask" description:"Mask for feature detection on the input image"`
 	OutputPath    string  `short:"o" long:"output" description:"Output path of aligned image." required:"true"`
 }
 
@@ -28,18 +28,18 @@ func main() {
 	input := readMatFromPath(args.InputPath)
 	reference := readMatFromPath(args.ReferencePath)
 
-	var mask gocv.Mat
-	if args.MaskPath != nil {
-		mask = readMatFromPath(*args.MaskPath)
+	var inputMask gocv.Mat
+	if args.InputMask != nil {
+		inputMask = readMatFromPath(*args.InputMask)
 	} else {
-		mask = gocv.NewMat()
+		inputMask = gocv.NewMat()
 	}
 
 	defer input.Close()
 	defer reference.Close()
-	defer mask.Close()
+	defer inputMask.Close()
 
-	align(reference, &input, mask, args.Percent)
+	align(reference, &input, inputMask, args.Percent)
 	writeSuccess := gocv.IMWrite(args.OutputPath, input)
 
 	if !writeSuccess {
@@ -61,12 +61,15 @@ func readMatFromPath(path string) gocv.Mat {
 
 // Aligns the given input image against the reference using opencv feature detection + homography matrix
 // applies alignment directly on the input image
-func align(reference gocv.Mat, input *gocv.Mat, mask gocv.Mat, percentMatches float64) {
+func align(reference gocv.Mat, input *gocv.Mat, inputMask gocv.Mat, percentMatches float64) {
 	orb := gocv.NewORB()
 	defer orb.Close()
 
-	kpsRef, descRef := orb.DetectAndCompute(reference, mask)
-	kpsInput, descInput := orb.DetectAndCompute(*input, mask)
+	emptyMask := gocv.NewMat()
+	defer emptyMask.Close()
+
+	kpsRef, descRef := orb.DetectAndCompute(reference, emptyMask)
+	kpsInput, descInput := orb.DetectAndCompute(*input, inputMask)
 
 	matcher := gocv.NewBFMatcherWithParams(gocv.NormHamming, true)
 	defer matcher.Close()
@@ -96,7 +99,7 @@ func align(reference gocv.Mat, input *gocv.Mat, mask gocv.Mat, percentMatches fl
 		dstPts.SetDoubleAt(i, 1, kpInput.Y)
 	}
 
-	homography := gocv.FindHomography(dstPts, &srcPts, gocv.HomograpyMethodRANSAC, 3, &mask, 2000, 0.955)
+	homography := gocv.FindHomography(dstPts, &srcPts, gocv.HomograpyMethodRANSAC, 3, &emptyMask, 2000, 0.955)
 
 	size := reference.Size()
 	gocv.WarpPerspective(*input, input, homography, image.Point{size[1], size[0]})
