@@ -21,6 +21,10 @@ var args struct {
 func main() {
 	_, err := flags.Parse(&args)
 
+	if args.Percent <= 0 || args.Percent > 1 {
+		err = fmt.Errorf("Percentage must be > 0 and < 1.\n")
+	}
+
 	if err != nil {
 		os.Exit(1)
 	}
