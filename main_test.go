@@ -65,7 +65,7 @@ func TestImageAlignWithMask(t *testing.T) {
 	emptyMask := gocv.NewMat()
 	defer emptyMask.Close()
 
-	align(reference, &input, emptyMask, 0.3)
+	align(reference, &input, emptyMask, 0.7)
 
 	input2 := gocv.IMRead("./img/ca-t2-input.jpg", gocv.IMReadAnyColor)
 	defer input.Close()
@@ -73,7 +73,7 @@ func TestImageAlignWithMask(t *testing.T) {
 	inputMask2 := gocv.IMRead("./img/ca-t2-input-mask.jpg", gocv.IMReadGrayScale)
 	defer inputMask2.Close()
 
-	align(reference, &input2, inputMask2, 0.3)
+	align(reference, &input2, inputMask2, 0.7)
 
 	hasher := contrib.AverageHash{}
 	inputHash := gocv.NewMat()
@@ -89,6 +89,4 @@ func TestImageAlignWithMask(t *testing.T) {
 	if distance > 5 {
 		t.Errorf("Expected input with mask to be roughly the same as normal alignment. Got %f hamming distance\n", distance)
 	}
-
-	gocv.IMWrite("test.png", input2)
 }
